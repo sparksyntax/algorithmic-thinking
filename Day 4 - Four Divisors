@@ -1,0 +1,39 @@
+class Solution {
+    public int sumFourDivisors(int[] nums) {
+        int result = 0;
+
+        for (int num : nums) {
+            if (sum(num) != -1) result += sum(num);
+        }
+
+        return result;
+    }
+
+    private int sum(int n) {
+        int a = (int) Math.round(Math.cbrt(n));
+        if ((long) a * a * a == n && isPrime(a)) {
+            return 1 + a + a * a + a * a * a;
+        }
+
+        for (int i = 2; i * i <= n; i++) {
+            if (n % i == 0) {
+                int s = i;
+                int t = n / i;
+                if (s != t && isPrime(s) && isPrime(t)) {
+                    return 1 + s + t + n;
+                }
+                return -1;
+            }
+        }
+        return -1; 
+    }
+
+    private boolean isPrime(int x) {
+        if (x < 2) return false;
+        for (int i = 2; i * i <= x; i++) {
+            if (x % i == 0) return false;
+        }
+
+        return true;
+    }
+}
