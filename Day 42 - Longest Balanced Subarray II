@@ -1,0 +1,96 @@
+class SegmentTree {
+    public int size;
+    public int[] sumTree, minPrefix, maxPrefix;
+
+    SegmentTree(int n) {
+        size = n;
+        sumTree = new int[4 * size];
+        minPrefix = new int[4 * size];
+        maxPrefix = new int[4 * size];
+    }
+
+    void pullUp(int node) {
+        int leftChild = node * 2;
+        int rightChild = node * 2 + 1;
+
+        sumTree[node] = sumTree[leftChild] + sumTree[rightChild];
+        minPrefix[node] = Math.min(minPrefix[leftChild], sumTree[leftChild] + minPrefix[rightChild]);
+        maxPrefix[node] = Math.max(maxPrefix[leftChild], sumTree[leftChild] + maxPrefix[rightChild]);
+    }
+
+    void update(int index, int value) {
+        update(1, 0, size - 1, index, value);
+    }
+
+    void update(int node, int left, int right, int index, int value) {
+        if (left == right) {
+            sumTree[node] = value;
+            minPrefix[node] = value;
+            maxPrefix[node] = value;
+            return;
+        }
+
+        int mid = (left + right) / 2;
+        if (index <= mid)
+            update(node * 2, left, mid, index, value);
+        else
+            update(node * 2 + 1, mid + 1, right, index, value);
+
+        pullUp(node);
+    }
+
+    boolean exists(int node, int sumBefore, int target) {
+        int required = target - sumBefore;
+        return minPrefix[node] <= required && required <= maxPrefix[node];
+    }
+
+    int findRightmostPrefix(int target) {
+        return findRightmostPrefix(1, 0, size - 1, 0, target);
+    }
+
+    int findRightmostPrefix(int node, int left, int right, int sumBefore, int target) {
+        if (!exists(node, sumBefore, target))
+            return -1;
+
+        if (left == right)
+            return left;
+
+        int mid = (left + right) / 2;
+        int leftChild = node * 2;
+        int rightChild = node * 2 + 1;
+
+        int sumBeforeRight = sumBefore + sumTree[leftChild];
+
+        if (exists(rightChild, sumBeforeRight, target))
+            return findRightmostPrefix(rightChild, mid + 1, right, sumBeforeRight, target);
+
+        return findRightmostPrefix(leftChild, left, mid, sumBefore, target);
+    }
+}
+
+class Solution {
+    public int longestBalanced(int[] nums) {
+        int n = nums.length;
+
+        SegmentTree segmentTree = new SegmentTree(n);
+        HashMap<Integer, Integer> firstOccurrence = new HashMap<>();
+
+        int result = 0;
+        for (int left = n - 1; left >= 0; --left) {
+            int value = nums[left];
+
+            Integer oldIndex = firstOccurrence.get(value);
+            if (oldIndex != null)
+                segmentTree.update(oldIndex, 0);
+
+            firstOccurrence.put(value, left);
+            segmentTree.update(left, ((value & 1) == 0) ? 1 : -1);
+
+            int right = segmentTree.findRightmostPrefix(0);
+            if (right >= left)
+                result = Math.max(result, right - left + 1);
+        }
+
+        return result;
+    }
+}
