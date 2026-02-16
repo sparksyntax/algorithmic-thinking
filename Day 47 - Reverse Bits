@@ -1,0 +1,16 @@
+class Solution {
+    public int reverseBits(int n) {
+        return reverse(n, 32);
+    }
+
+    private int reverse(int v, int size) {
+        if (size == 1) return v & 1;
+
+        int half = size >> 1;
+        int mask = ( 1 << half) - 1;
+        int low = v & mask;
+        int high = v >> half;
+
+        return (reverse(low, half) << half) | reverse(high, half);
+    }
+}
